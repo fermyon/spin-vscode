@@ -1,11 +1,11 @@
 import * as path from 'path';
 
 export function toolsFolder(): string {
-    return path.join(home(), `.fermyon/autobindle/tools`);
+    return path.join(home(), `.fermyon/spin-vscode/tools`);
 }
 
 export function dataFolder(): string {
-    return path.join(home(), `.fermyon/autobindle/data`);
+    return path.join(home(), `.fermyon/spin-vscode/data`);
 }
 
 function home(): string {

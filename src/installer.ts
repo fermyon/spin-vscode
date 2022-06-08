@@ -8,14 +8,15 @@ import { Errorable, err, ok, isErr, isOk } from "./errorable";
 import * as layout from './layout';
 import { longRunning } from './longrunning';
 
-const SPIN_DONWLOAD_URL_TEMPLATE = "https://example.com/spin-v0.1.0-{{subst:os}}-{{subst:arch}}.tar.gz";
+const SPIN_VERSION = "0.2.0";
+const SPIN_DONWLOAD_URL_TEMPLATE = `https://github.com/fermyon/spin/releases/download/v${SPIN_VERSION}/spin-v${SPIN_VERSION}-{{subst:os}}-{{subst:arch}}.tar.gz`;
 const SPIN_TOOL_NAME = "spin";
 const SPIN_BIN_NAME = "spin";
 
 export async function ensureSpinInstalled(): Promise<Errorable<string>> {
     const toolFile = installLocation(SPIN_TOOL_NAME, SPIN_BIN_NAME);
     if (!fs.existsSync(toolFile)) {
-        const downloadResult = await longRunning("Downloading Bindle executable", () =>
+        const downloadResult = await longRunning("Downloading Spin executable", () =>
             downloadSpinTo(toolFile)
         );
         if (isErr(downloadResult)) {

@@ -1,67 +1,83 @@
 {
-	"name": "spin-vscode",
-	"publisher": "fermyon",
-	"displayName": "spin-vscode",
-	"description": "Build and test Spin components from within VS Code",
-	"version": "0.0.1",
-	"preview": true,
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/fermyon/spin-vscode"
-	},
-	"license": "Apache-2.0",
-	"engines": {
-		"vscode": "^1.63.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:spin.helloWorld"
-	],
-	"main": "./dist/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "spin-vscode.helloWorld",
-				"title": "Hello World"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run package",
-		"compile": "webpack",
-		"watch": "webpack --watch",
-		"package": "webpack --mode production --devtool hidden-source-map",
-		"compile-tests": "tsc -p . --outDir out",
-		"watch-tests": "tsc -p . -w --outDir out",
-		"pretest": "npm run compile-tests && npm run compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.2.0",
-		"@types/mkdirp": "^1.0.2",
-		"@types/mocha": "^9.0.0",
-		"@types/node": "14.x",
-		"@types/tar": "^6.1.1",
-		"@types/tmp": "^0.2.3",
-		"@types/vscode": "^1.63.0",
-		"@typescript-eslint/eslint-plugin": "^5.9.1",
-		"@typescript-eslint/parser": "^5.9.1",
-		"@vscode/test-electron": "^2.0.3",
-		"eslint": "^8.6.0",
-		"glob": "^7.2.0",
-		"mocha": "^9.1.3",
-		"typescript": "^4.5.4",
-		"ts-loader": "^9.2.6",
-		"webpack": "^5.66.0",
-		"webpack-cli": "^4.9.1"
-	},
-	"dependencies": {
-		"download": "^8.0.0",
-		"mkdirp": "^1.0.4",
-		"tar": "^6.1.11",
-		"tmp": "^0.2.1"
-	}
+    "name": "spin-vscode",
+    "publisher": "fermyon",
+    "displayName": "spin-vscode",
+    "description": "Build and test Spin components from within VS Code",
+    "version": "0.0.1",
+    "preview": true,
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fermyon/spin-vscode"
+    },
+    "license": "Apache-2.0",
+    "engines": {
+        "vscode": "^1.63.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onTaskType:spin"
+    ],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "commands": [
+        ],
+        "taskDefinitions": [
+            {
+                "type": "spin",
+                "when": "shellExecutionSupported",
+                "required": ["command"],
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "The Spin command to execute"
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Options to pass on the Spin command line"
+                    }
+                }
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run package",
+        "compile": "webpack",
+        "watch": "webpack --watch",
+        "package": "webpack --mode production --devtool hidden-source-map",
+        "compile-tests": "tsc -p . --outDir out",
+        "watch-tests": "tsc -p . -w --outDir out",
+        "pretest": "npm run compile-tests && npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.2.0",
+        "@types/mkdirp": "^1.0.2",
+        "@types/mocha": "^9.0.0",
+        "@types/node": "14.x",
+        "@types/tar": "^6.1.1",
+        "@types/tmp": "^0.2.3",
+        "@types/vscode": "^1.63.0",
+        "@typescript-eslint/eslint-plugin": "^5.9.1",
+        "@typescript-eslint/parser": "^5.9.1",
+        "@vscode/test-electron": "^2.0.3",
+        "eslint": "^8.6.0",
+        "glob": "^7.2.0",
+        "mocha": "^9.1.3",
+        "typescript": "^4.5.4",
+        "ts-loader": "^9.2.6",
+        "webpack": "^5.66.0",
+        "webpack-cli": "^4.9.1"
+    },
+    "dependencies": {
+        "download": "^8.0.0",
+        "mkdirp": "^1.0.4",
+        "tar": "^6.1.11",
+        "tmp": "^0.2.1"
+    }
 }
