@@ -25,3 +25,14 @@ export function isErr<T>(obj: Errorable<T>): obj is Err {
 export function isOk<T>(obj: Errorable<T>): obj is Ok<T> {
     return obj.succeeded;
 }
+
+export function map<T, U>(self: Errorable<T>, f: (t: T) => U): Errorable<U> {
+    if (isOk(self)) {
+        return ok(f(self.value));
+    }
+    return self;
+}
+
+export async function mapAsync<T, U>(self: Promise<Errorable<T>>, f: (t: T) => U): Promise<Errorable<U>> {
+    return await map(await self, f);
+}
