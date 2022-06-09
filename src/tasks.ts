@@ -22,13 +22,15 @@ class SpinTaskProvider implements vscode.TaskProvider<vscode.Task> {
 
 async function provideTasks(): Promise<vscode.Task[]> {
     const taskSpecs: ReadonlyArray<SpinTaskSpecification> = [
-        { name: "build", defn: { type: "spin", command: "build", options: [] }},
-        { name: "up", defn: { type: "spin", command: "up", options: [] }},
+        { name: "build", defn: { type: "spin", command: "build", options: [] }, group: vscode.TaskGroup.Build },
+        { name: "up", defn: { type: "spin", command: "up", options: [] }, group: vscode.TaskGroup.Test },
     ];
 
-    const tasks = taskSpecs.map(async ({name, defn}) => {
+    const tasks = taskSpecs.map(async ({name, defn, group}) => {
         const cmd = await spinCommand([defn.command, ...defn.options ?? []]);
-        return new vscode.Task(defn, vscode.TaskScope.Workspace, name, TASK_SOURCE, cmd);
+        const task = new vscode.Task(defn, vscode.TaskScope.Workspace, name, TASK_SOURCE, cmd);
+        task.group = group;
+        return task;
     });
     return await Promise.all(tasks);
 }
@@ -61,6 +63,7 @@ async function spinCommand(args: string[]): Promise<vscode.ShellExecution> {
 interface SpinTaskSpecification {
     readonly name: string;
     readonly defn: SpinTaskDefinition;
+    readonly group?: vscode.TaskGroup;
 }
 
 interface SpinTaskDefinition extends vscode.TaskDefinition {
