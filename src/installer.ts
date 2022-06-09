@@ -16,7 +16,7 @@ const SPIN_BIN_NAME = "spin";
 export async function ensureSpinInstalled(): Promise<Errorable<string>> {
     const toolFile = installLocation(SPIN_TOOL_NAME, SPIN_BIN_NAME);
     if (!fs.existsSync(toolFile)) {
-        const downloadResult = await longRunning("Downloading Spin executable", () =>
+        const downloadResult = await longRunning(`Downloading Spin ${SPIN_VERSION}...`, () =>
             downloadSpinTo(toolFile)
         );
         if (isErr(downloadResult)) {
@@ -63,7 +63,7 @@ export function installLocation(tool: string, bin: string): string {
     // The ideal is to cache in extension storage (ExtensionContext::globalStorage)
     // but exec can only run from a plain ol' file path, so file path it is.
     const basePath = layout.toolsFolder();
-    const toolPath = path.join(basePath, tool);
+    const toolPath = path.join(basePath, tool, `v${SPIN_VERSION}`);
     const binSuffix = process.platform === 'win32' ? '.exe' : '';
     const toolFile = path.join(toolPath, bin + binSuffix);
     return toolFile;
@@ -79,7 +79,14 @@ function os(): string | null {
 }
 
 function arch(): string | null {
-    return "amd64";
+    switch (process.arch) {
+        case 'arm64':
+            return process.platform === 'darwin' ? 'aarch64' : 'arm64';
+        case 'x64':
+            return "amd64";
+        default:
+            return null;
+    }
 }
 
 type DownloadFunc =
