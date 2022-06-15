@@ -3,6 +3,7 @@
     "publisher": "fermyon",
     "displayName": "Spin",
     "description": "Build and test Spin components from within VS Code",
+    "icon": "images/spin-icon.png",
     "version": "0.0.1",
     "preview": true,
     "repository": {
