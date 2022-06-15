@@ -55,7 +55,7 @@ async function spinCommand(args: string[]): Promise<vscode.ShellExecution> {
     if (isOk(spinPath)) {
         return new vscode.ShellExecution(spinPath.value, args, undefined);
     } else {
-        warnInstallNotEnsured(`Couldn't : ${spinPath.message}`);
+        warnInstallNotEnsured(`Couldn't install Spin: ${spinPath.message}`);
         return new vscode.ShellExecution("spin", args, undefined);
     }
 }

@@ -24,6 +24,15 @@
     "contributes": {
         "commands": [
         ],
+        "configuration": {
+            "title": "Spin",
+            "properties": {
+                "spin.customProgramPath": {
+                    "type": "string",
+                    "description": "Path of a Spin binary to use instead of the auto-installed binary"
+                }
+            }
+        },
         "taskDefinitions": [
             {
                 "type": "spin",

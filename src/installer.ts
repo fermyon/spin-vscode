@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as stream from 'stream';
 import * as tar from 'tar';
 import * as tmp from 'tmp';
+import * as config from './config';
 import { Errorable, err, ok, isErr, isOk } from "./errorable";
 import * as layout from './layout';
 import { longRunning } from './longrunning';
@@ -14,6 +15,11 @@ const SPIN_TOOL_NAME = "spin";
 const SPIN_BIN_NAME = "spin";
 
 export async function ensureSpinInstalled(): Promise<Errorable<string>> {
+    const customPath = config.customPath();
+    if (customPath) {
+        return ok(customPath);
+    }
+
     const toolFile = installLocation(SPIN_TOOL_NAME, SPIN_BIN_NAME);
     if (!fs.existsSync(toolFile)) {
         const downloadResult = await longRunning(`Downloading Spin ${SPIN_VERSION}...`, () =>
