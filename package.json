@@ -18,11 +18,17 @@
         "Other"
     ],
     "activationEvents": [
+        "onCommand:spin.addToTerminalPath",
         "onTaskType:spin"
     ],
     "main": "./dist/extension.js",
     "contributes": {
         "commands": [
+            {
+                "category": "Spin",
+                "command": "spin.addToTerminalPath",
+                "title": "Add to Terminal Path"
+            }
         ],
         "configuration": {
             "title": "Spin",
