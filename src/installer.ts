@@ -10,7 +10,7 @@ import { Errorable, err, ok, isErr, isOk } from "./errorable";
 import * as layout from './layout';
 import { longRunning } from './longrunning';
 
-const SPIN_VERSION = "0.2.0";
+const SPIN_VERSION = "0.3.0";
 const SPIN_DONWLOAD_URL_TEMPLATE = `https://github.com/fermyon/spin/releases/download/v${SPIN_VERSION}/spin-v${SPIN_VERSION}-{{subst:os}}-{{subst:arch}}.{{subst:fmt}}`;
 const SPIN_TOOL_NAME = "spin";
 const SPIN_BIN_NAME = "spin";
