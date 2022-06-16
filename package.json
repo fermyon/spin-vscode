@@ -92,6 +92,7 @@
     },
     "dependencies": {
         "download": "^8.0.0",
+        "extract-zip": "^2.0.1",
         "mkdirp": "^1.0.4",
         "tar": "^6.1.11",
         "tmp": "^0.2.1"

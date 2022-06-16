@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import extract = require('extract-zip');
 import mkdirp = require('mkdirp');
 import * as path from 'path';
 import * as stream from 'stream';
@@ -10,7 +11,7 @@ import * as layout from './layout';
 import { longRunning } from './longrunning';
 
 const SPIN_VERSION = "0.2.0";
-const SPIN_DONWLOAD_URL_TEMPLATE = `https://github.com/fermyon/spin/releases/download/v${SPIN_VERSION}/spin-v${SPIN_VERSION}-{{subst:os}}-{{subst:arch}}.tar.gz`;
+const SPIN_DONWLOAD_URL_TEMPLATE = `https://github.com/fermyon/spin/releases/download/v${SPIN_VERSION}/spin-v${SPIN_VERSION}-{{subst:os}}-{{subst:arch}}.{{subst:fmt}}`;
 const SPIN_TOOL_NAME = "spin";
 const SPIN_BIN_NAME = "spin";
 
@@ -49,7 +50,7 @@ async function downloadSpinTo(toolFile: string): Promise<Errorable<null>> {
     }
 
     const archiveFile = downloadResult.value;
-    const unarchiveResult = await untar(archiveFile, toolDir);
+    const unarchiveResult = await unarchive(archiveFile, toolDir);
 
     return unarchiveResult;
 }
@@ -57,12 +58,13 @@ async function downloadSpinTo(toolFile: string): Promise<Errorable<null>> {
 function downloadSource(): Errorable<string> {
     const osId = os();
     const archId = arch();
+    const fmtId = fmt();
 
     if (osId === null || archId === null) {
         return err("Unsupported operating system or processor architecture");
     }
 
-    const url = SPIN_DONWLOAD_URL_TEMPLATE.replace("{{subst:os}}", osId).replace("{{subst:arch}}", archId);
+    const url = SPIN_DONWLOAD_URL_TEMPLATE.replace("{{subst:os}}", osId).replace("{{subst:arch}}", archId).replace("{{subst:fmt}}", fmtId);
     return ok(url);
 }
 
@@ -113,6 +115,20 @@ function arch(): string | null {
             return "amd64";
         default:
             return null;
+    }
+}
+
+function fmt(): string {
+    switch (process.platform) {
+        case 'win32': return 'zip';
+        default: return 'tar.gz';
+    }
+}
+
+async function unarchive(sourceFile: string, destinationFolder: string): Promise<Errorable<null>> {
+    switch (process.platform) {
+        case 'win32': return unzip(sourceFile, destinationFolder);
+        default: return untar(sourceFile, destinationFolder);
     }
 }
 
@@ -176,5 +192,18 @@ async function untar(sourceFile: string, destinationFolder: string): Promise<Err
     } catch (e) {
         console.log(e);
         return err("tar extract failed");
+    }
+}
+
+async function unzip(sourceFile: string, destinationFolder: string): Promise<Errorable<null>> {
+    try {
+        if (!fs.existsSync(destinationFolder)) {
+            mkdirp.sync(destinationFolder);
+        }
+        await extract(sourceFile, { dir: destinationFolder });
+        return ok(null);
+    } catch (e) {
+        console.log(e);
+        return err("zip extract failed");
     }
 }
