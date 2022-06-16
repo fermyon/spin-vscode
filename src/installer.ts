@@ -21,7 +21,7 @@ export async function ensureSpinInstalled(): Promise<Errorable<string>> {
     }
 
     const toolFile = installLocation(SPIN_TOOL_NAME, SPIN_BIN_NAME);
-    if (!fs.existsSync(toolFile)) {
+    if (!fs.existsSync(toolFile) || !isInstallCurrent()) {
         const downloadResult = await longRunning(`Downloading Spin ${SPIN_VERSION}...`, () =>
             downloadSpinTo(toolFile)
         );
@@ -29,6 +29,7 @@ export async function ensureSpinInstalled(): Promise<Errorable<string>> {
             return downloadResult;
         }
     }
+    markInstallCurrent();
     return ok(toolFile);
 }
 
@@ -69,10 +70,30 @@ export function installLocation(tool: string, bin: string): string {
     // The ideal is to cache in extension storage (ExtensionContext::globalStorage)
     // but exec can only run from a plain ol' file path, so file path it is.
     const basePath = layout.toolsFolder();
-    const toolPath = path.join(basePath, tool, `v${SPIN_VERSION}`);
+    const toolPath = path.join(basePath, tool, `current`);
     const binSuffix = process.platform === 'win32' ? '.exe' : '';
     const toolFile = path.join(toolPath, bin + binSuffix);
     return toolFile;
+}
+
+function isInstallCurrent(): boolean {
+    const versionFile = installedVersionLocation(SPIN_TOOL_NAME);
+    if (!fs.existsSync(versionFile)) {
+        return false;
+    }
+    const text = fs.readFileSync(versionFile, { encoding: 'utf-8' });
+    return text.trim() === SPIN_VERSION;
+}
+
+function markInstallCurrent() {
+    const versionFile = installedVersionLocation(SPIN_TOOL_NAME);
+    fs.writeFileSync(versionFile, SPIN_VERSION, { encoding: 'utf-8' });
+}
+
+function installedVersionLocation(tool: string): string {
+    const basePath = layout.toolsFolder();
+    const versionPath = path.join(basePath, tool, `current-version.txt`);
+    return versionPath;
 }
 
 function os(): string | null {
