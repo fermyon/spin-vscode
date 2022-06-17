@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.3.1]
+
+* Fixed issue with adding Spin to path on WSL
+
 ## [0.3.0]
 
 - Automatically install Spin
