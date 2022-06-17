@@ -4,7 +4,7 @@
     "displayName": "Spin",
     "description": "Build and test Spin components from within VS Code",
     "icon": "images/spin-icon.png",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "preview": true,
     "repository": {
         "type": "git",
