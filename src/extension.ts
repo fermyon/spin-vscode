@@ -6,7 +6,7 @@ import * as tasks from './tasks';
 
 export function activate(context: vscode.ExtensionContext) {
     const disposables = [
-        vscode.commands.registerCommand('spin.addToTerminalPath', addToTerminalPath),
+        vscode.commands.registerCommand('spin.addToTerminalPath', () => addToTerminalPath(context)),
         vscode.tasks.registerTaskProvider("spin", tasks.provider()),
     ];
 
