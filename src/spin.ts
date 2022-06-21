@@ -11,7 +11,7 @@ async function invokeObj<T>(sh: shell.Shell, command: string, args: string, opts
     const bin = binOpt.value;
 
     const cmd = `${bin} ${command} ${args}`;
-    output.channel().appendLine(`$ ${cmd}`);
+    output.appendLine(`$ ${cmd}`);
     return await sh.execObj<T>(
         cmd,
         `spin ${command}`,
@@ -22,11 +22,12 @@ async function invokeObj<T>(sh: shell.Shell, command: string, args: string, opts
 
 function andLog<T>(fn: (s: string) => T): (s: string) => T {
     return (s: string) => {
-        output.channel().appendLine(s);
+        output.appendLine(s);
         return fn(s);
     };
 }
 
-export async function deploy(sh: shell.Shell): Promise<Errorable<string>> {
-    return await invokeObj(sh, 'deploy', '', {}, (s) => s);
+export async function deploy(sh: shell.Shell, reactivateExisting?: boolean): Promise<Errorable<string>> {
+    const args = reactivateExisting ? '--deploy-existing-bindle' : '';
+    return await invokeObj(sh, 'deploy', args, {}, (s) => s);
 }

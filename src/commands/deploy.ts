@@ -4,6 +4,7 @@ import { shell } from '../utils/shell';
 import * as spin from '../spin';
 import { isOk } from '../errorable';
 import * as output from '../output';
+import { longRunning } from '../longrunning';
 
 export async function deploy() {
     // TODO: how to unset them if you make a typo?!?!?!?
@@ -20,16 +21,33 @@ export async function deploy() {
         return;
     }
 
-    const deployResult = await spin.deploy(shell);
+    const deployResult = await longRunning("Spin deploy in progress...", () =>
+        spin.deploy(shell)
+    );
 
     if (isOk(deployResult)) {
         // output already printed to channel - should we understand it too?
-        output.channel().show();
+        output.show();
         await vscode.window.showInformationMessage("Spin deployment complete. See Output pane for application URL.");
     } else {
-        output.channel().appendLine(deployResult.message);
-        output.channel().show();
-        await vscode.window.showErrorMessage("Spin deployment failed. See Output pane for details.");
+        output.appendLine(deployResult.message);
+        const alreadyExists = deployResult.message.includes('already exists on the server');
+        if (alreadyExists) {
+            const reactivateResult = await await longRunning("Deployment exists, reactivating...", () =>
+                spin.deploy(shell, true)
+            );
+            if (isOk(reactivateResult)) {
+                output.show();
+                await vscode.window.showInformationMessage("Spin deployment (reactivation) complete. See Output pane for application URL.");
+            } else {
+                output.appendLine(reactivateResult.message);
+                output.show();
+                await vscode.window.showErrorMessage("Spin deployment (reactivation) failed. See Output pane for details.");
+            }
+        } else {
+            output.show();
+            await vscode.window.showErrorMessage("Spin deployment failed. See Output pane for details.");
+        }
     }
 }
 
