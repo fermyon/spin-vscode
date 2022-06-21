@@ -12,3 +12,7 @@ export function warnInstallNotEnsured(message: string, always?: 'always' | 'if-n
         OUTPUT_CHANNEL.appendLine(message);
     }
 }
+
+export function channel(): vscode.OutputChannel {
+    return OUTPUT_CHANNEL;
+}
