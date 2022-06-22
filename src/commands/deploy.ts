@@ -4,7 +4,7 @@ import { shell } from '../utils/shell';
 import * as spin from '../spin';
 import { isOk } from '../errorable';
 import * as output from '../output';
-import { longRunning } from '../longrunning';
+import { longRunning, longRunningCancellable } from '../longrunning';
 
 export async function deploy() {
     // TODO: how to unset them if you make a typo?!?!?!?
@@ -21,8 +21,11 @@ export async function deploy() {
         return;
     }
 
-    const deployResult = await longRunning("Spin deploy in progress...", () =>
-        spin.deploy(shell)
+    // const deployResult = await longRunning("Spin deploy in progress...", () =>
+    //     spin.deploy(shell)
+    // );
+    const deployResult = await longRunningCancellable("Spin deploy in progress...", (tok) =>
+        spin.deploy2(tok)
     );
 
     if (isOk(deployResult)) {

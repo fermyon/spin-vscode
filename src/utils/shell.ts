@@ -1,4 +1,6 @@
+import * as rx from 'rxjs';
 import * as shelljs from 'shelljs';
+import * as spawnrx from 'spawn-rx';
 import * as vscode from 'vscode';
 
 import { err, Errorable, ok } from '../errorable';
@@ -100,6 +102,58 @@ function execOpts(): ExecOpts {
         async: true
     };
     return opts;
+}
+
+export interface RunningProcess {
+    readonly stdout: rx.Observable<string>;
+    readonly stderr: rx.Observable<string>;
+    terminate(): void;
+}
+
+export function invokeTracking(program: string, args: string[], token: vscode.CancellationToken): RunningProcess {
+    const outSubject = new rx.Subject<string>();
+    const errSubject = new rx.Subject<string>();
+
+    const opts = execOpts();
+
+    let pendingOut = '';
+    let pendingErr = '';
+    const output = spawnrx.spawn<{source: string, text: string}>(program, args, { split: true, ...opts });
+    const sub = output.subscribe(({ source, text }) => {
+        console.log(source + "->" + text);
+        const isOut = source === 'stdout';
+        const todo = (isOut ? pendingOut : pendingErr) + text;
+        const lines = todo.split('\n').map((l) => l.trim());
+        const lastIsWholeLine = todo.endsWith('\n');
+        const newPending = lastIsWholeLine ? '' : (lines.pop() || '');
+        if (isOut) {
+            pendingOut = newPending;
+        } else {
+            pendingErr = newPending;
+        }
+
+        const subject = isOut ? outSubject : errSubject;
+        for (const line of lines) {
+            subject.next(line);
+        }
+    });
+    const disposer = () => sub.unsubscribe();
+
+    const process = {
+        stdout: outSubject,
+        stderr: errSubject,
+        terminate: () => {
+            outSubject.unsubscribe();
+            errSubject.unsubscribe();
+            disposer();
+        }
+    };
+
+    token.onCancellationRequested((_) => {
+        process.terminate();
+    });
+
+    return process;
 }
 
 async function exec(cmd: string): Promise<Errorable<ShellResult>> {
