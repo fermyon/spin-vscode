@@ -156,6 +156,73 @@ export function invokeTracking(program: string, args: string[], token: vscode.Ca
     return process;
 }
 
+export interface RPErr {
+    readonly type: 'stderr';
+    readonly value: string;
+}
+
+export interface RPDone {
+    readonly type: 'done';
+    readonly stdout: string;
+}
+
+export type RPEvent = RPErr | RPDone;
+
+export interface RunningProcess2 {
+    readonly output: rx.Observable<RPEvent>;
+    terminate(): void;
+}
+
+export function invokeErrFeed(program: string, args: string[], token: vscode.CancellationToken): RunningProcess2 {
+    const subject = new rx.Subject<RPEvent>();
+
+    const opts = execOpts();
+
+    let stdout = '';
+    let stderr = '';
+    let pendingErr = '';
+    const output = spawnrx.spawn<{source: string, text: string}>(program, args, { split: true, ...opts });
+    const sub = output.subscribe({
+        next: ({ source, text }) => {
+            if (source === 'stdout') {
+                stdout += text;
+            } else {
+                stderr += text;
+                const todo = pendingErr + text;
+                const lines = todo.split('\n').map((l) => l.trim());
+                const lastIsWholeLine = todo.endsWith('\n');
+                pendingErr = lastIsWholeLine ? '' : (lines.pop() || '');
+
+                for (const line of lines) {
+                    subject.next({ type: 'stderr', value: line });
+                }
+            }
+        },
+        complete: () => {
+            subject.next({type: 'done', stdout: stdout });
+            subject.complete();
+        },
+        error: (_) => {
+            subject.error(stderr);
+        },
+    });
+    const disposer = () => sub.unsubscribe();
+
+    const process = {
+        output: subject,
+        terminate: () => {
+            subject.unsubscribe();
+            disposer();
+        }
+    };
+
+    token.onCancellationRequested((_) => {
+        process.terminate();
+    });
+
+    return process;
+}
+
 async function exec(cmd: string): Promise<Errorable<ShellResult>> {
     try {
         return ok(await execCore(cmd, execOpts()));
