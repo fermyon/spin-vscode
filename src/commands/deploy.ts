@@ -4,7 +4,7 @@ import { shell } from '../utils/shell';
 import * as spin from '../spin';
 import { isOk } from '../errorable';
 import * as output from '../output';
-import { longRunning, longRunningCancellable, longRunningCancellable2 } from '../longrunning';
+import { longRunning, longRunningCancellable2 } from '../longrunning';
 
 export async function deploy() {
     // TODO: how to unset them if you make a typo?!?!?!?
@@ -17,7 +17,7 @@ export async function deploy() {
     if (!await ensureEnv("HIPPO_USERNAME", { prompt: "Enter Hippo user name", placeHolder: "myname" })) {
         return;
     }
-    if (!await ensureEnv("HIPPO_PASSWORD", { prompt: "Enter Hippo password", placeHolder: "my$s3cr3t!" })) {
+    if (!await ensureEnv("HIPPO_PASSWORD", { prompt: "Enter Hippo password", placeHolder: "my$s3cr3t!", password: true })) {
         return;
     }
 
