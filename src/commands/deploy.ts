@@ -30,7 +30,8 @@ export async function deploy() {
     );
 
     if (isOk(deployResult)) {
-        // output already printed to channel - should we understand it too?
+        // should we understand it too?
+        output.appendLine(deployResult.value);
         output.show();
         await vscode.window.showInformationMessage("Spin deployment complete. See Output pane for application URL.");
     } else {
@@ -41,6 +42,7 @@ export async function deploy() {
                 spin.deploy(shell, true)
             );
             if (isOk(reactivateResult)) {
+                output.appendLine(reactivateResult.value);
                 output.show();
                 await vscode.window.showInformationMessage("Spin deployment (reactivation) complete. See Output pane for application URL.");
             } else {
