@@ -1,10 +1,9 @@
 import * as vscode from 'vscode';
 
-import { shell } from '../utils/shell';
 import * as spin from '../spin';
 import { isOk } from '../errorable';
 import * as output from '../output';
-import { longRunning, longRunningCancellable2 } from '../longrunning';
+import { longRunningProcess } from '../longrunning';
 
 const BONUS_ENV: { [key: string]: string } = {};
 
@@ -22,11 +21,8 @@ export async function deploy() {
         return;
     }
 
-    // const deployResult = await longRunning("Spin deploy in progress...", () =>
-    //     spin.deploy(shell)
-    // );
-    const deployResult = await longRunningCancellable2("Spin deploy in progress...", (tok) =>
-        spin.deploy3(tok, BONUS_ENV)
+    const deployResult = await longRunningProcess("Spin deploy in progress...", (tok) =>
+        spin.deploy(tok, BONUS_ENV)
     );
 
     if (isOk(deployResult)) {
@@ -38,8 +34,8 @@ export async function deploy() {
         output.appendLine(deployResult.message);
         const alreadyExists = deployResult.message.includes('already exists on the server');
         if (alreadyExists) {
-            const reactivateResult = await await longRunning("Deployment exists, reactivating...", () =>
-                spin.deploy(shell, true)
+            const reactivateResult = await longRunningProcess("Deployment exists, reactivating...", (tok) => 
+                spin.deploy(tok, BONUS_ENV, true)
             );
             if (isOk(reactivateResult)) {
                 output.appendLine(reactivateResult.value);

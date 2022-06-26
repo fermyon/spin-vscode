@@ -104,77 +104,25 @@ function execOpts(): ExecOpts {
     return opts;
 }
 
-export interface RunningProcess {
-    readonly stdout: rx.Observable<string>;
-    readonly stderr: rx.Observable<string>;
-    terminate(): void;
-}
-
-export function invokeTracking(program: string, args: string[], token: vscode.CancellationToken): RunningProcess {
-    const outSubject = new rx.Subject<string>();
-    const errSubject = new rx.Subject<string>();
-
-    const opts = execOpts();
-
-    let pendingOut = '';
-    let pendingErr = '';
-    const output = spawnrx.spawn<{source: string, text: string}>(program, args, { split: true, ...opts });
-    const sub = output.subscribe(({ source, text }) => {
-        console.log(source + "->" + text);
-        const isOut = source === 'stdout';
-        const todo = (isOut ? pendingOut : pendingErr) + text;
-        const lines = todo.split('\n').map((l) => l.trim());
-        const lastIsWholeLine = todo.endsWith('\n');
-        const newPending = lastIsWholeLine ? '' : (lines.pop() || '');
-        if (isOut) {
-            pendingOut = newPending;
-        } else {
-            pendingErr = newPending;
-        }
-
-        const subject = isOut ? outSubject : errSubject;
-        for (const line of lines) {
-            subject.next(line);
-        }
-    });
-    const disposer = () => sub.unsubscribe();
-
-    const process = {
-        stdout: outSubject,
-        stderr: errSubject,
-        terminate: () => {
-            outSubject.unsubscribe();
-            errSubject.unsubscribe();
-            disposer();
-        }
-    };
-
-    token.onCancellationRequested((_) => {
-        process.terminate();
-    });
-
-    return process;
-}
-
-export interface RPErr {
+export interface ProcessErrLine {
     readonly type: 'stderr';
     readonly value: string;
 }
 
-export interface RPDone {
+export interface ProcessDone {
     readonly type: 'done';
     readonly stdout: string;
 }
 
-export type RPEvent = RPErr | RPDone;
+export type ProcessEvent = ProcessErrLine | ProcessDone;
 
-export interface RunningProcess2 {
-    readonly output: rx.Observable<RPEvent>;
+export interface RunningProcess {
+    readonly output: rx.Observable<ProcessEvent>;
     terminate(): void;
 }
 
-export function invokeErrFeed(program: string, args: string[], bonusEnv: { [key: string]: string }, token: vscode.CancellationToken): RunningProcess2 {
-    const subject = new rx.Subject<RPEvent>();
+export function invokeErrFeed(program: string, args: string[], bonusEnv: { [key: string]: string }, token: vscode.CancellationToken): RunningProcess {
+    const subject = new rx.Subject<ProcessEvent>();
 
     const env = { ...process.env, ...bonusEnv };
     const opts = {
