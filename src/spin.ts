@@ -44,7 +44,7 @@ export async function deploy2(token: CancellationToken, reactivateExisting?: boo
     return ok(shell.invokeTracking(bin, ['deploy', ...args], token));
 }
 
-export async function deploy3(token: CancellationToken, reactivateExisting?: boolean): Promise<Errorable<shell.RunningProcess2>> {
+export async function deploy3(token: CancellationToken, bonusEnv: { [key: string]: string }, reactivateExisting?: boolean): Promise<Errorable<shell.RunningProcess2>> {
     const binOpt = await ensureSpinInstalled();
     if (isErr(binOpt)) {
         return binOpt;
@@ -52,5 +52,5 @@ export async function deploy3(token: CancellationToken, reactivateExisting?: boo
     const bin = binOpt.value;
 
     const args = reactivateExisting ? ['--deploy-existing-bindle'] : [];
-    return ok(shell.invokeErrFeed(bin, ['deploy', ...args], token));
+    return ok(shell.invokeErrFeed(bin, ['deploy', ...args], bonusEnv, token));
 }

@@ -6,8 +6,9 @@ import { isOk } from '../errorable';
 import * as output from '../output';
 import { longRunning, longRunningCancellable2 } from '../longrunning';
 
+const BONUS_ENV: { [key: string]: string } = {};
+
 export async function deploy() {
-    // TODO: how to unset them if you make a typo?!?!?!?
     if (!await ensureEnv("BINDLE_URL", { prompt: "Enter Bindle server URL", placeHolder: "http://bindle.local.fermyon.link/v1" })) {
         return;
     }
@@ -25,7 +26,7 @@ export async function deploy() {
     //     spin.deploy(shell)
     // );
     const deployResult = await longRunningCancellable2("Spin deploy in progress...", (tok) =>
-        spin.deploy3(tok)
+        spin.deploy3(tok, BONUS_ENV)
     );
 
     if (isOk(deployResult)) {
@@ -55,12 +56,15 @@ export async function deploy() {
 }
 
 async function ensureEnv(env: string, promptOpts: vscode.InputBoxOptions): Promise<boolean> {
-    if (!process.env[env]) {
-        const envValue = await vscode.window.showInputBox(promptOpts);
-        if (!envValue) {
-            return false;
-        }
-        process.env[env] = envValue;
+    if (process.env[env]) {
+        return true;
     }
+
+    promptOpts.value = BONUS_ENV[env];
+    const envValue = await vscode.window.showInputBox(promptOpts);
+    if (!envValue) {
+        return false;
+    }
+    BONUS_ENV[env] = envValue;
     return true;
 }

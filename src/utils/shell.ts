@@ -173,15 +173,21 @@ export interface RunningProcess2 {
     terminate(): void;
 }
 
-export function invokeErrFeed(program: string, args: string[], token: vscode.CancellationToken): RunningProcess2 {
+export function invokeErrFeed(program: string, args: string[], bonusEnv: { [key: string]: string }, token: vscode.CancellationToken): RunningProcess2 {
     const subject = new rx.Subject<RPEvent>();
 
-    const opts = execOpts();
+    const env = { ...process.env, ...bonusEnv };
+    const opts = {
+        split: true,
+        cwd: vscode.workspace.rootPath,
+        async: true,
+        env,
+    };
 
     let stdout = '';
     let stderr = '';
     let pendingErr = '';
-    const output = spawnrx.spawn<{source: string, text: string}>(program, args, { split: true, ...opts });
+    const output = spawnrx.spawn<{source: string, text: string}>(program, args, opts);
     const sub = output.subscribe({
         next: ({ source, text }) => {
             if (source === 'stdout') {
@@ -208,7 +214,7 @@ export function invokeErrFeed(program: string, args: string[], token: vscode.Can
     });
     const disposer = () => sub.unsubscribe();
 
-    const process = {
+    const runningProcess = {
         output: subject,
         terminate: () => {
             subject.unsubscribe();
@@ -217,10 +223,10 @@ export function invokeErrFeed(program: string, args: string[], token: vscode.Can
     };
 
     token.onCancellationRequested((_) => {
-        process.terminate();
+        runningProcess.terminate();
     });
 
-    return process;
+    return runningProcess;
 }
 
 async function exec(cmd: string): Promise<Errorable<ShellResult>> {
