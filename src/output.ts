@@ -12,3 +12,11 @@ export function warnInstallNotEnsured(message: string, always?: 'always' | 'if-n
         OUTPUT_CHANNEL.appendLine(message);
     }
 }
+
+export function appendLine(value: string) {
+    OUTPUT_CHANNEL.appendLine(value);
+}
+
+export function show(preserveFocus?: boolean) {
+    OUTPUT_CHANNEL.show(preserveFocus);
+}
