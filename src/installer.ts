@@ -1,8 +1,9 @@
 import * as fs from 'fs';
+import * as fsp from 'fs/promises';
+import got from 'got';
 import extract = require('extract-zip');
 import mkdirp = require('mkdirp');
 import * as path from 'path';
-import * as stream from 'stream';
 import * as tar from 'tar';
 import * as tmp from 'tmp';
 import * as config from './config';
@@ -132,36 +133,13 @@ async function unarchive(sourceFile: string, destinationFolder: string): Promise
     }
 }
 
-type DownloadFunc =
-    (url: string, destination?: string, options?: unknown)
-         => Promise<Buffer> & stream.Duplex; // Stream has additional events - see https://www.npmjs.com/package/download
-
-let downloadImpl: DownloadFunc | undefined;
-
-function ensureDownloadFunc() {
-    if (!downloadImpl) {
-        // Fix download module corrupting HOME environment variable on Windows
-        // See https://github.com/Azure/vscode-kubernetes-tools/pull/302#issuecomment-404678781
-        // and https://github.com/kevva/npm-conf/issues/13
-        const home = process.env['HOME'];
-        downloadImpl = require('download');
-        if (home) {
-            process.env['HOME'] = home;
-        }
-    }
-}
-
-function download(url: string, destinationFile: string): Promise<Buffer> & stream.Duplex {
-    ensureDownloadFunc();
-    if (downloadImpl) {
-        return downloadImpl(url, path.dirname(destinationFile), { filename: path.basename(destinationFile) });
-    } else {
-        throw new Error("Failed to initialise downloader");
-    }
+async function download(url: string, destinationFile: string) {
+    const response = await got(url).buffer();
+    await mkdirp(path.dirname(destinationFile));
+    await fsp.writeFile(destinationFile, response);
 }
 
 async function downloadTo(sourceUrl: string, destinationFile: string): Promise<Errorable<null>> {
-    ensureDownloadFunc();
     try {
         await download(sourceUrl, destinationFile);
         return ok(null);
