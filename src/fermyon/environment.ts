@@ -64,7 +64,7 @@ export async function promptSwitch(): Promise<Cancellable<FermyonEnvironment | u
 
     const otherEnvironments = allEnvironments.filter(e => e.name !== activeEnvironmentName);
     const quickPicks = otherEnvironments.map(asQuickPick);
-    quickPicks.unshift({ label: 'Disconnect', environment: undefined });
+    quickPicks.unshift({ label: '(None)', description: 'Disconnects from all environments', environment: undefined });
 
     const selected = await vscode.window.showQuickPick(
         quickPicks,

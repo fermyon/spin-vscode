@@ -21,6 +21,7 @@
         "onCommand:spin.addToTerminalPath",
         "onCommand:spin.deploy",
         "onCommand:spin.connect",
+        "onCommand:spin.openDashboard",
         "onTaskType:spin"
     ],
     "main": "./dist/extension.js",
@@ -39,7 +40,12 @@
             {
                 "category": "Spin",
                 "command": "spin.connect",
-                "title": "Connect to Deployment Environment"
+                "title": "Choose Deployment Environment"
+            },
+            {
+                "category": "Spin",
+                "command": "spin.openDashboard",
+                "title": "Open Dashboard"
             }
         ],
         "configuration": {
@@ -78,6 +84,14 @@
                     "description": "The currently active deployment environment"
                 }
             }
+        },
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "spin.openDashboard",
+                    "when": "spin.connected"
+                }
+            ]
         },
         "taskDefinitions": [
             {
