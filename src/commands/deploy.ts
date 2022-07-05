@@ -7,7 +7,7 @@ import { longRunningProcess } from '../longrunning';
 import { activeEnvironment, FermyonEnvironment, getHippoPassword, saveEnvironment, saveHippoPassword } from '../fermyon/environment';
 import { accepted, Cancellable, cancelled, isCancelled } from '../utils/cancellable';
 import { cantHappen } from '../utils/never';
-import { connectTo } from './connect';
+import { setActive } from '../fermyon/environment-ui';
 
 export async function deploy(context: vscode.ExtensionContext) {
     const fermyonEnv = activeEnvironment();
@@ -55,13 +55,15 @@ async function notifyDeploymentComplete(unsaved: UnsavedEnvironmentInfo, descrip
     if (unsaved.toSave === 'none') {
         await vscode.window.showInformationMessage(message);
     } else if (unsaved.toSave === 'password') {
+        // TODO: is this going to get bothersome if the user already intentionally chose
+        // "save without password"?
         const savePassword = await vscode.window.showInformationMessage(message, "Save Password");
         if (savePassword) {
             await saveHippoPassword(context, unsaved.envName, deployParameters.hippoPassword);
         }
     } else if (unsaved.toSave === 'all') {
-        const saveAll = await vscode.window.showInformationMessage(message, "Save Deployment Settings", "Save Without Password");
-        if (saveAll) {
+        const saveChoice = await vscode.window.showInformationMessage(message, "Save Deployment Settings", "Save Without Password");
+        if (saveChoice) {
             const envName = await vscode.window.showInputBox({ prompt: "Pick a name for these settings" });
             if (!envName) {
                 return;
@@ -72,8 +74,9 @@ async function notifyDeploymentComplete(unsaved: UnsavedEnvironmentInfo, descrip
                 hippoUrl: deployParameters.hippoUrl,
                 hippoUsername: deployParameters.hippoUsername,
             };
-            await saveEnvironment(context, environment, deployParameters.hippoPassword);
-            connectTo(environment);
+            const passwoprdToSave = (saveChoice === 'Save Deployment Settings' ? deployParameters.hippoPassword : undefined);
+            await saveEnvironment(context, environment, passwoprdToSave);
+            await setActive(context, environment);
         }
     } else {
         cantHappen(unsaved);

@@ -1,17 +1,9 @@
 import * as vscode from 'vscode';
-import { accepted, Cancellable, cancelled } from '../utils/cancellable';
-
-// Proposed experience:
-// - You can have multiple environments defined
-// - You can have an active environment or no active environment
-// - If you have an active environment then it is used for deployment operations
-// - If not then it uses the current logic
 
 // Longer term we may need to split this - not sure whether we should
 // simply infer Terraform directories etc.
 export interface FermyonEnvironment {
     readonly name: string;
-    // readonly kind: 'local' | 'aws';
     readonly bindleUrl: string;
     readonly hippoUrl: string;
     readonly hippoUsername: string;
@@ -53,53 +45,19 @@ export async function saveEnvironment(context: vscode.ExtensionContext, environm
     }
 }
 
-export async function promptSwitch(): Promise<Cancellable<FermyonEnvironment | undefined>> {
-    const activeEnvironmentName = activeEnvironmentNameConfig();
-    const allEnvironments = allEnvironmentsConfig();
-
-    if (allEnvironments.length === 0) {
-        await vscode.window.showInformationMessage("There are no other Fermyon environments defined.");
-        return cancelled();
-    }
-
-    const otherEnvironments = allEnvironments.filter(e => e.name !== activeEnvironmentName);
-    const quickPicks = otherEnvironments.map(asQuickPick);
-    quickPicks.unshift({ label: '(None)', description: 'Disconnects from all environments', environment: undefined });
-
-    const selected = await vscode.window.showQuickPick(
-        quickPicks,
-        { placeHolder: 'Environment to switch to' }
-    );
-    if (!selected) {
-        return cancelled();
-    }
-
-    const selectedEnvironment = selected.environment;
-    await setActive(selectedEnvironment?.name);
-    return accepted(selectedEnvironment);
-}
-
-function activeEnvironmentNameConfig() {
+export function activeEnvironmentNameConfig() {
     return vscode.workspace.getConfiguration().get<string>("spin.activeEnvironment");
 }
 
-function allEnvironmentsConfig() {
+export function allEnvironmentsConfig() {
     return vscode.workspace.getConfiguration().get<FermyonEnvironment[]>("spin.environments") || [];
 }
 
-export async function setActive(environmentName: string | undefined) {
+export async function saveActive(environmentName: string | undefined) {
     await vscode.workspace.getConfiguration().update("spin.activeEnvironment", environmentName, vscode.ConfigurationTarget.Global);
 }
 
 export function environmentExists(environmentName: string): boolean {
     const allEnvironments = allEnvironmentsConfig();
     return allEnvironments.some(e => e.name === environmentName);
-}
-
-function asQuickPick(environment: FermyonEnvironment): vscode.QuickPickItem & { readonly environment: FermyonEnvironment | undefined } {
-    return {
-        label: environment.name,
-        description: `(dashboard: ${environment.hippoUrl})`,
-        environment,
-    };
 }
