@@ -19,6 +19,7 @@ class FermyonStatusBarItemImpl implements FermyonStatusBarItem {
         if (this.item === null) {
             this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
             this.item.text = "Fermyon";
+            this.item.command = "spin.onStatusBarItemClicked";
         }
         this.item.tooltip = `Dashboard URL: ${dashboardAddress}\nData environment: ${environmentName}`;
         this.item.show();
@@ -28,6 +29,21 @@ class FermyonStatusBarItemImpl implements FermyonStatusBarItem {
         if (this.item !== null) {
             this.item.hide();
         }
+    }
+}
+
+export async function onStatusBarItemClicked() {
+    // TODO: is there a way to keep these in sync with the titles in
+    // package.json?
+    const commands = [
+        { label: "Spin: Choose Deployment Environment", command: "spin.connect" },
+        { label: "Spin: Open Dashboard", command: "spin.openDashboard" },
+    ];
+
+    const commandPick = await vscode.window.showQuickPick(commands);
+
+    if (commandPick) {
+        vscode.commands.executeCommand(commandPick.command);
     }
 }
 

@@ -22,6 +22,7 @@
         "onCommand:spin.deploy",
         "onCommand:spin.connect",
         "onCommand:spin.openDashboard",
+        "onCommand:spin.onStatusBarItemClicked",
         "onTaskType:spin"
     ],
     "main": "./dist/extension.js",
@@ -46,6 +47,11 @@
                 "category": "Spin",
                 "command": "spin.openDashboard",
                 "title": "Open Dashboard"
+            },
+            {
+                "category": "Spin",
+                "command": "spin.onStatusBarItemClicked",
+                "title": "On Status Bar Item Clicked"
             }
         ],
         "configuration": {
@@ -90,7 +96,12 @@
                 {
                     "command": "spin.openDashboard",
                     "when": "spin.connected"
+                },
+                {
+                    "command": "spin.onStatusBarItemClicked",
+                    "when": "false"
                 }
+
             ]
         },
         "taskDefinitions": [
