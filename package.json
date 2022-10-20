@@ -4,7 +4,7 @@
     "displayName": "Spin",
     "description": "Build and test Spin components from within VS Code",
     "icon": "images/spin-icon.png",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "preview": true,
     "repository": {
         "type": "git",
@@ -41,7 +41,7 @@
             {
                 "category": "Spin",
                 "command": "spin.connect",
-                "title": "Choose Deployment Environment"
+                "title": "Log In"
             },
             {
                 "category": "Spin",
@@ -60,34 +60,6 @@
                 "spin.customProgramPath": {
                     "type": "string",
                     "description": "Path of a Spin binary to use instead of the auto-installed binary"
-                },
-                "spin.environments": {
-                    "type": "array",
-                    "items": {
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "description": "The name by which this environment is identified in the user interface"
-                            },
-                            "bindleUrl": {
-                                "type": "string",
-                                "description": "The URL of the Bindle server"
-                            },
-                            "hippoUrl": {
-                                "type": "string",
-                                "description": "The URL of the Hippo server"
-                            },
-                            "hippoUsername": {
-                                "type": "string",
-                                "description": "The user name for logging into the Hippo server (note: password is held separately in the secret store)"
-                            }
-                        }
-                    },
-                    "description": "The known deployment environments"
-                },
-                "spin.activeEnvironment": {
-                    "type": "string",
-                    "description": "The currently active deployment environment"
                 }
             }
         },
