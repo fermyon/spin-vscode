@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 export interface FermyonStatusBarItem {
-    show(environmentName: string, dashboardAddress: string): void;
+    show(dashboardAddress: string): void;
     hide(): void;
 }
 
@@ -15,13 +15,13 @@ class FermyonStatusBarItemImpl implements FermyonStatusBarItem {
         this.item = null;
     }
 
-    show(environmentName: string, dashboardAddress: string) {
+    show(dashboardAddress: string) {
         if (this.item === null) {
             this.item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
             this.item.text = "Fermyon";
             this.item.command = "spin.onStatusBarItemClicked";
         }
-        this.item.tooltip = `Dashboard URL: ${dashboardAddress}\nData environment: ${environmentName}`;
+        this.item.tooltip = `Logged into ${dashboardAddress}`;
         this.item.show();
     }
 
@@ -36,7 +36,7 @@ export async function onStatusBarItemClicked() {
     // TODO: is there a way to keep these in sync with the titles in
     // package.json?
     const commands = [
-        { label: "Spin: Choose Deployment Environment", command: "spin.connect" },
+        { label: "Spin: Change Login", command: "spin.connect" },
         { label: "Spin: Open Dashboard", command: "spin.openDashboard" },
     ];
 

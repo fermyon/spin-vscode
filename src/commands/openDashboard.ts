@@ -1,22 +1,22 @@
 import * as vscode from 'vscode';
 
-import { activeEnvironment } from "../fermyon/environment";
+import { activeDashboard } from "../fermyon/environment";
 
 export async function openDashboard() {
-    const environment = activeEnvironment();
-    if (!environment) {
+    const dashboardUrlText = await activeDashboard();
+    if (!dashboardUrlText) {
         // Shouldn't happen because of UI context but just in case
         await vscode.window.showErrorMessage('Not connected to Fermyon. Choose Spin: Choose Deployment Environment.');
         return;
     }
 
     try {
-        const hippoUrl = vscode.Uri.parse(environment.hippoUrl);
-        const opened = await vscode.env.openExternal(hippoUrl);
+        const dashboardUrl = vscode.Uri.parse(dashboardUrlText);
+        const opened = await vscode.env.openExternal(dashboardUrl);
         if (!opened) {
-            await vscode.window.showErrorMessage(`Unable to open ${environment.hippoUrl}.`);
+            await vscode.window.showErrorMessage(`Unable to open ${dashboardUrlText}.`);
         }
     } catch {
-        await vscode.window.showErrorMessage(`Invalid dashboard URL ${environment.hippoUrl}. Please update your settings.`);
+        await vscode.window.showErrorMessage(`Invalid dashboard URL ${dashboardUrlText}. Please update your settings.`);
     }
 }
