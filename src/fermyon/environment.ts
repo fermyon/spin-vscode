@@ -2,7 +2,7 @@ import * as spin from '../spin';
 import { shell } from '../utils/shell';
 import { isErr } from '../errorable';
 
-export const FERMYON_DEFAULT_URL = "http://localhost:5309";
+export const FERMYON_DEFAULT_URL = "https://cloud.fermyon.com";
 
 export async function activeDashboard(): Promise<string | undefined> {
     const loginStatusResult = await spin.loginStatus(shell);

@@ -18,7 +18,7 @@ export async function promptLogin(): Promise<Cancellable<Errorable<string>>> {
     return result;
 }
 
-const DEFAULT_HOST = 'Default Fermyon instance';
+const DEFAULT_HOST = 'Fermyon Cloud';
 const GH_AUTH_INSTANCE = 'Platform using GitHub authentication';
 const BASIC_AUTH_INSTANCE = 'Default Fermyon Platform using username and password';
 
