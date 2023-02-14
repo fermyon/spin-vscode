@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.8.0]
+
+* Updated to Spin 0.8.0
+* Use XDG cache directory for downloaded Spin binary
+
 ## [0.6.0]
 
 * Updated to Spin 0.6.0
