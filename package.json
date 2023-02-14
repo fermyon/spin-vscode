@@ -131,7 +131,7 @@
     },
     "dependencies": {
         "extract-zip": "^2.0.1",
-        "got": "^11.8.3",
+        "got": "^12.5.3",
         "mkdirp": "^1.0.4",
         "rxjs": "^7.5.5",
         "shelljs": "^0.8.5",
