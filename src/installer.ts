@@ -10,28 +10,38 @@ import * as config from './config';
 import { Errorable, err, ok, isErr, isOk } from "./errorable";
 import * as layout from './layout';
 import { longRunning } from './longrunning';
+import * as log from './logger';
 
-const SPIN_VERSION = "0.8.0";
+// TODO: List available versions (can we use verman)?
+// TODO: Get latest version
+const SPIN_VERSION = "3.0.0-rc.1";
 const SPIN_DONWLOAD_URL_TEMPLATE = `https://github.com/fermyon/spin/releases/download/v${SPIN_VERSION}/spin-v${SPIN_VERSION}-{{subst:os}}-{{subst:arch}}.{{subst:fmt}}`;
 const SPIN_TOOL_NAME = "spin";
 const SPIN_BIN_NAME = "spin";
 
 export async function ensureSpinInstalled(): Promise<Errorable<string>> {
+    log.info(ensureSpinInstalled.name, `Checking if Spin is installed`);
+
     const customPath = config.customPath();
     if (customPath) {
+        log.info(ensureSpinInstalled.name, `Using the following custom path from configuration: ${customPath}`);
         return ok(customPath);
     }
 
     const toolFile = installLocation(SPIN_TOOL_NAME, SPIN_BIN_NAME);
+    log.info(ensureSpinInstalled.name, `Checking for Spin at: ${toolFile}`);
     if (!fs.existsSync(toolFile) || !isInstallCurrent()) {
+        log.info(ensureSpinInstalled.name, `Didn't find Spin locally.`);
         const downloadResult = await longRunning(`Downloading Spin ${SPIN_VERSION}...`, () =>
             downloadSpinTo(toolFile)
         );
         if (isErr(downloadResult)) {
+            log.info(ensureSpinInstalled.name, `Error installing Spin: ${downloadResult}`);
             return downloadResult;
         }
-    }
+    }    
     markInstallCurrent();
+    log.info(ensureSpinInstalled.name, `Spin installed at: ${toolFile}`);
     return ok(toolFile);
 }
 
