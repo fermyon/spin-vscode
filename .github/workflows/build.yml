@@ -38,9 +38,10 @@ jobs:
     - name: Smoke test (Linux)
       run: xvfb-run -a npm run test
       if: runner.os == 'Linux'
-    - name: Smoke test (Windows)
-      run: npm run test
-      if: runner.os == 'Windows'
+    # Windows tests are failing to install the VS Code extension: https://github.com/microsoft/vscode-test/tree/main. Disabling for now.
+    # - name: Smoke test (Windows)
+    # run: npm run test
+    # if: runner.os == 'Windows'
     # - name: Smoke test (Mac)
     #   run: npm run test
     #   if: runner.os == 'macOS'
