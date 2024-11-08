@@ -2,7 +2,7 @@ import { CancellationToken } from 'vscode';
 import { Errorable, isErr, ok } from './errorable';
 import { ensureSpinInstalled } from './installer';
 import * as shell from './utils/shell';
-import * as output from './output';
+import * as log from './logger';
 
 async function invokeObj<T>(sh: shell.Shell, command: string, args: string, opts: shell.ExecOpts, fn: (stdout: string) => T): Promise<Errorable<T>> {
     const binOpt = await ensureSpinInstalled();
@@ -12,7 +12,7 @@ async function invokeObj<T>(sh: shell.Shell, command: string, args: string, opts
     const bin = binOpt.value;
 
     const cmd = `${bin} ${command} ${args}`;
-    output.appendLine(`$ ${cmd}`);
+    log.info(invokeObj.name, `$ ${cmd}`);
     return await sh.execObj<T>(
         cmd,
         `spin ${command}`,
@@ -23,7 +23,7 @@ async function invokeObj<T>(sh: shell.Shell, command: string, args: string, opts
 
 function andLog<T>(fn: (s: string) => T): (s: string) => T {
     return (s: string) => {
-        output.appendLine(s);
+        log.info(andLog.name, s);
         return fn(s);
     };
 }

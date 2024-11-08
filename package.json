@@ -130,6 +130,7 @@
         "webpack-cli": "^4.9.1"
     },
     "dependencies": {
+        "@octokit/rest": "^21.0.2",
         "extract-zip": "^2.0.1",
         "got": "^11.8.3",
         "mkdirp": "^1.0.4",
