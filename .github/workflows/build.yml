@@ -18,7 +18,8 @@ jobs:
     strategy:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        node_version: [14, 16]
+        # Setting versions based on this table: https://github.com/ewanharris/vscode-versions
+        node_version: [18, 20]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -44,13 +45,13 @@ jobs:
     #   run: npm run test
     #   if: runner.os == 'macOS'
     - name: Package extension
-      if: matrix.os == 'ubuntu-latest' && matrix.node_version == 14
+      if: matrix.os == 'ubuntu-latest' && matrix.node_version == 18
       run: |
         vsce package
         mkdir vsix
         mv *.vsix vsix
     - name: Archive extension
-      if: matrix.os == 'ubuntu-latest' && matrix.node_version == 14
+      if: matrix.os == 'ubuntu-latest' && matrix.node_version == 18
       uses: actions/upload-artifact@v4
       with:
         name: vsix
