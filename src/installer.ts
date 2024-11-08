@@ -11,16 +11,16 @@ import { Errorable, err, ok, isErr, isOk } from "./errorable";
 import * as layout from './layout';
 import { longRunning } from './longrunning';
 import * as log from './logger';
+import { Octokit } from "@octokit/rest";
 
-// TODO: List available versions (can we use verman)?
-// TODO: Get latest version
-const SPIN_VERSION = "3.0.0-rc.1";
-const SPIN_DONWLOAD_URL_TEMPLATE = `https://github.com/fermyon/spin/releases/download/v${SPIN_VERSION}/spin-v${SPIN_VERSION}-{{subst:os}}-{{subst:arch}}.{{subst:fmt}}`;
+// Fallback version is used if the call to getLatestReleases() fails
+const SPIN_VERSION_FALLBACK = "3.0.0";
 const SPIN_TOOL_NAME = "spin";
 const SPIN_BIN_NAME = "spin";
 
 export async function ensureSpinInstalled(): Promise<Errorable<string>> {
-    log.info(ensureSpinInstalled.name, `Checking if Spin is installed`);
+    const spinVersion = await getLatestReleases();
+    log.info(ensureSpinInstalled.name, `Checking if Spin ${spinVersion} is installed`);
 
     const customPath = config.customPath();
     if (customPath) {
@@ -30,25 +30,25 @@ export async function ensureSpinInstalled(): Promise<Errorable<string>> {
 
     const toolFile = installLocation(SPIN_TOOL_NAME, SPIN_BIN_NAME);
     log.info(ensureSpinInstalled.name, `Checking for Spin at: ${toolFile}`);
-    if (!fs.existsSync(toolFile) || !isInstallCurrent()) {
+    if (!fs.existsSync(toolFile) || !isInstallCurrent(spinVersion)) {
         log.info(ensureSpinInstalled.name, `Didn't find Spin locally.`);
-        const downloadResult = await longRunning(`Downloading Spin ${SPIN_VERSION}...`, () =>
-            downloadSpinTo(toolFile)
+        const downloadResult = await longRunning(`Downloading Spin ${spinVersion}...`, () =>
+            downloadSpinTo(toolFile, spinVersion)
         );
         if (isErr(downloadResult)) {
-            log.info(ensureSpinInstalled.name, `Error installing Spin: ${downloadResult}`);
+            log.error(ensureSpinInstalled.name, `Error installing Spin: ${JSON.stringify(downloadResult)}`);
             return downloadResult;
         }
     }    
-    markInstallCurrent();
+    markInstallCurrent(spinVersion);
     log.info(ensureSpinInstalled.name, `Spin installed at: ${toolFile}`);
     return ok(toolFile);
 }
 
-async function downloadSpinTo(toolFile: string): Promise<Errorable<null>> {
+async function downloadSpinTo(toolFile: string, spinVersion: string): Promise<Errorable<null>> {
     const toolDir = path.dirname(toolFile);
 
-    const sourceUrl = downloadSource();
+    const sourceUrl = downloadSource(spinVersion);
     if (isErr(sourceUrl)) {
         return sourceUrl;
     }
@@ -66,7 +66,7 @@ async function downloadSpinTo(toolFile: string): Promise<Errorable<null>> {
     return unarchiveResult;
 }
 
-function downloadSource(): Errorable<string> {
+function downloadSource(spinVersion: string): Errorable<string> {
     const osId = os();
     const archId = arch();
     const fmtId = fmt();
@@ -75,7 +75,8 @@ function downloadSource(): Errorable<string> {
         return err("Unsupported operating system or processor architecture");
     }
 
-    const url = SPIN_DONWLOAD_URL_TEMPLATE.replace("{{subst:os}}", osId).replace("{{subst:arch}}", archId).replace("{{subst:fmt}}", fmtId);
+    const url = `https://github.com/fermyon/spin/releases/download/${spinVersion}/spin-${spinVersion}-${osId}-${archId}.${fmtId}`;
+    log.info(downloadSource.name, `"Download URI: ${url}`);
     return ok(url);
 }
 
@@ -89,18 +90,18 @@ export function installLocation(tool: string, bin: string): string {
     return toolFile;
 }
 
-function isInstallCurrent(): boolean {
+function isInstallCurrent(spinVersion: string): boolean {
     const versionFile = installedVersionLocation(SPIN_TOOL_NAME);
     if (!fs.existsSync(versionFile)) {
         return false;
     }
     const text = fs.readFileSync(versionFile, { encoding: 'utf-8' });
-    return text.trim() === SPIN_VERSION;
+    return text.trim() === spinVersion;
 }
 
-function markInstallCurrent() {
+function markInstallCurrent(spinVersion: string) {
     const versionFile = installedVersionLocation(SPIN_TOOL_NAME);
-    fs.writeFileSync(versionFile, SPIN_VERSION, { encoding: 'utf-8' });
+    fs.writeFileSync(versionFile, spinVersion, { encoding: 'utf-8' });
 }
 
 function installedVersionLocation(tool: string): string {
@@ -193,5 +194,22 @@ async function unzip(sourceFile: string, destinationFolder: string): Promise<Err
     } catch (e) {
         console.log(e);
         return err("zip extract failed");
+    }
+}
+
+async function getLatestReleases(): Promise<string> {
+    const octokit = new Octokit();
+    const { data: release } = await octokit.rest.repos.getLatestRelease({
+        owner: "fermyon",
+        repo: "spin",
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+    });
+
+    if (release.name === null) {
+        return SPIN_VERSION_FALLBACK;
+    } else {
+        return release.name;
     }
 }
