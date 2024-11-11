@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { isOk } from './errorable';
 
 import * as installer from './installer';
-import { warnInstallNotEnsured } from './output';
+import { warnInstallNotEnsured } from './logger';
 import { cantHappen } from './utils/never';
 
 const TASK_SOURCE = "spin";

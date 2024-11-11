@@ -5,7 +5,7 @@ import * as spin from '../spin';
 import { shell } from '../utils/shell';
 import { isErr } from '../errorable';
 import { longRunningProcess } from '../longrunning';
-import * as output from '../output';
+import * as log from '../logger';
 import { promptLogin } from '../fermyon/environment-ui';
 
 export async function deploy() {
@@ -38,15 +38,15 @@ export async function deploy() {
     }
 
     if (isErr(deployResult)) {
-        output.appendLine(`Spin ${description} failed.  Details:`);
-        output.appendLine(deployResult.message);
-        output.appendLine('');
+        log.error(deploy.name, `Spin ${description} failed.  Details:`);
+        log.error(deploy.name, deployResult.message);
+        log.error(deploy.name, '');
         await vscode.window.showErrorMessage(`Spin ${description} failed. Error: ${deployResult.message}`);
         return;
     }
 
-    output.appendLine(deployResult.value);
-    output.show();
+    log.info(deploy.name, deployResult.value);
+    log.show();
     const message = `Spin ${description} complete. See output pane for application URL.`;
     await vscode.window.showInformationMessage(message);
 }
